@@ -1,11 +1,3 @@
-ggplot(Sport_mark_rate_only_by_year %>% filter(AREA=="Area 19 (JDF)", YEAR==2019), aes(y=mark_rate, x=month(MONTH, label=TRUE) , col=Source, group=Source))  +
-  geom_point() + geom_line()+  facet_wrap(~YEAR) + ggtitle("Area 19 (JDF)") +scale_x_discrete(guide = guide_axis(angle = 90)) +
-  xlab("Month") + ylab("Proportion marked")+ theme_bw()
-
-
-p19jdf
-
-p20
 
 
 MR_pre2019 + MR_post2019 +  plot_layout(guides = "collect")
