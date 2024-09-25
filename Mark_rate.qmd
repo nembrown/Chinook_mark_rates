@@ -576,6 +576,16 @@ PFMAMonth_biodata_diff_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_recent%>
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
 
+PFMAMonth_biodata_diff_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_ecvi*100))+
+  geom_tile(colour = "white") +
+  geom_text(aes(label=round(marked_prop_biodata_diff_ecvi*100, 0)))+
+  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+   scale_y_discrete(limits=rev)+
+  scale_x_discrete(position = "top")+
+  labs(title = "Scenario 4: Difference in current biodata mark rate\n when marking ECVI stocks at 100%",
+       x = "Month", y = "PFMA") +
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+
 
 ### potential: 
 PFMAMonth_biodata_potential_recent_plot_1<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff)*100))+
@@ -627,6 +637,16 @@ PFMAMonth_biodata_potential_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_rec
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Scenario 3c: Potential biodata mark rate\n when marking Big Qualicum River at 100%",
+       x = "Month", y = "PFMA") +
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
+
+PFMAMonth_biodata_potential_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100))+
+  geom_tile(colour = "white") +
+  geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100, 0)))+
+  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+   scale_y_discrete(limits=rev)+
+  scale_x_discrete(position = "top")+
+  labs(title = "Scenario 4: Potential biodata mark rate\n when marking ECVI stocks at 100%",
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
