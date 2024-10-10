@@ -28,6 +28,7 @@ library(tidyverse)
 library(odbc)
 library(lubridate)
 library(ggnewscale)
+library(patchwork)
 
 #utils
 "%notin%" <- Negate("%in%")
@@ -35,7 +36,7 @@ library(ggnewscale)
 #Pull sport data from CREST
 source("PullAllSport.R")
 # PullAllSport(Start_year) set the calendar year to start querying from to the current year
-rslt <- PullAllSport(2005)
+rslt <- PullAllSport(2013)
 quality_report <- rslt[[1]]
 estimates <- rslt[[2]]
 rm(rslt)
@@ -107,7 +108,7 @@ filter(AREA %notin% c("Area 1", "Area 101", "Area 142", "Area 2", "Area 8", "Are
 
 
 ### Add in biodata - cut off of 20? 
-biodata_mr1<- read.csv(here::here("biodata_CreelSub_mark_rate.csv")) %>% 
+biodata_mr1<- read.csv(here::here("biodata_CreelSub_mark_rate_Oct.csv")) %>% 
               as_tibble()  %>% 
               group_by(YEAR, AREA, MONTH) %>% 
               summarise_if(is.numeric, sum, na.rm = TRUE) %>% 
@@ -115,7 +116,7 @@ biodata_mr1<- read.csv(here::here("biodata_CreelSub_mark_rate.csv")) %>%
               filter(total_catch>20)
 
 
-biodata_mr2<- read.csv(here::here("biodata_CreelSub_mark_rate.csv")) %>% 
+biodata_mr2<- read.csv(here::here("biodata_CreelSub_mark_rate_Oct.csv")) %>% 
               as_tibble()  %>% 
               mutate(catch_region = case_when(
     AREA%in%c( "Area 125", "Area 126", "Area 127", "Area 121", "Area 123", "Area 124", "Area 21", "Area 24", "Area 23", "Area 23 (Barkley)", "Area 23 (Alberni Canal)", "Area 25", "Area 26", "Area 27") ~ "West Coast Vancouver Is Sport",
@@ -237,7 +238,7 @@ Sport_mark_rate_only_recent$marked_prop_source<-factor(Sport_mark_rate_only_rece
 
 
 ### add in biodata differences
-biodata_diff_recent<- read.csv(here::here("biodata_PFMA_mark_rate_diffs2.csv")) %>%
+biodata_diff_recent<- read.csv(here::here("biodata_PFMA_mark_rate_diffs_Oct.csv")) %>%
               as_tibble()  %>% 
               filter(Samples>20, Year_Group=="recent") %>% 
               dplyr::select(-Samples, -Year_Group)
@@ -288,7 +289,7 @@ Sport_mark_rate_only_past<- Sport_mark_rate_only %>% filter(YEAR %in% 2014:2018)
 Sport_mark_rate_only_past$marked_prop_source<-factor(Sport_mark_rate_only_past$marked_prop_source, levels = c("calibrated iREC","creel plus logbook","commercial", "no source"))
 
 ### add in biodata differences
-biodata_diff_past<- read.csv(here::here("biodata_PFMA_mark_rate_diffs2.csv")) %>% 
+biodata_diff_past<- read.csv(here::here("biodata_PFMA_mark_rate_diffs_Oct.csv")) %>% 
               as_tibble()  %>% 
               filter(Samples>20, Year_Group=="past") %>% 
               dplyr::select(-Samples, -Year_Group)
@@ -314,6 +315,12 @@ Sport_mark_rate_only_past_catch<- Sport_mark_rate_only_catch %>% filter(YEAR %in
 
 Sport_mark_rate_only_past_catch$marked_prop_source<-factor(Sport_mark_rate_only_past_catch$marked_prop_source, levels = c("calibrated iREC","creel plus logbook","commercial", "no source"))
 
+
+
+Sport_mark_rate_only_recent$AREA<-factor(Sport_mark_rate_only_recent$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
+
+Sport_mark_rate_only_past$AREA<-factor(Sport_mark_rate_only_past$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
+
 ```
 
 # Results
@@ -338,7 +345,7 @@ MR_post2019_catch<-ggplot(data=Sport_mark_rate_only_recent_catch %>% filter(catc
   geom_tile(linewidth=1) +
   scale_colour_manual(values = c("pink", "#1C00ff00", "#1C00ff00", "#1C00ff00"))+
   geom_text(aes(label=round(marked_prop_catch_estimate*100, 0)), col="black")+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Average mark rate by catch region 2019-2023",
@@ -367,7 +374,7 @@ MR_post2019<-ggplot(data=Sport_mark_rate_only_recent %>% filter(AREA %notin% c("
   geom_tile(linewidth=1) +
   scale_colour_manual(values = c("pink", "#1C00ff00",  "pink4"))+
   geom_text(aes(label=round(marked_prop_catch_estimate*100, 0)), col="black")+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Average mark rate by PFMA 2019-2023",
@@ -397,7 +404,7 @@ MR_pre2019<-ggplot(data=Sport_mark_rate_only_past %>% filter(AREA %notin% c("Are
   geom_tile(linewidth=1) +
   scale_colour_manual(values = c("pink", "#1C00ff00", "pink3", "pink4"))+
   geom_text(aes(label=round(marked_prop_catch_estimate*100, 0)), col="black")+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Average mark rate by PFMA 2014-2018",
@@ -424,7 +431,7 @@ MR_pre2019_catch<-ggplot(data=Sport_mark_rate_only_past_catch %>% filter(catch_r
   geom_tile(linewidth=1) +
   scale_colour_manual(values = c("pink", "#1C00ff00", "#1C00ff00"))+
   geom_text(aes(label=round(marked_prop_catch_estimate*100, 0)), col="black")+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Average mark rate by catch region 2014-2018",
@@ -441,6 +448,10 @@ MR_pre2019_catch
 
 Datasets for 2019-2023 separated out by source.
 
+Sport_mark_rate_only_recent\$AREA\<-factor(Sport_mark_rate_only_recent\$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
+
+Sport_mark_rate_only_past\$AREA\<-factor(Sport_mark_rate_only_past\$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
+
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 #| label: fig-source
 #| fig-cap: "Mark rate heatmap by management area and month. Mark rate is an average of mark rates from 2019-2023.Mark rate is separated by data source."
@@ -454,17 +465,10 @@ Datasets for 2019-2023 separated out by source.
 #| column: page
 
 
-library(patchwork)
-
-Sport_mark_rate_only_recent$AREA<-factor(Sport_mark_rate_only_recent$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
-
-Sport_mark_rate_only_past$AREA<-factor(Sport_mark_rate_only_past$AREA, levels = c("Area 10", "Area 11", "Area 111", "Area 12", "Area 13", "Area 14", "Area 15", "Area 16", "Area 17", "Area 18", "Area 19 (GS)", "Area 19 (JDF)", "Area 20", "Area 20 (East)", "Area 20 (West)", "Area 121", "Area 123", "Area 124", "Area 21", "Area 23 (Alberni Canal)", "Area 23 (Barkley)", "Area 23","Area 24", "Area 125", "Area 126", "Area 127", "Area 25", "Area 26", "Area 27", "Area 28", "Area 29"))
-
-
 PFMAMonth_irec_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_irec_calibrated*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_irec_calibrated*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "iREC data only",
@@ -475,7 +479,7 @@ PFMAMonth_irec_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH,
 PFMAMonth_creel_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_creel*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_creel*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Creel data only",
@@ -485,7 +489,7 @@ PFMAMonth_creel_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH
 PFMAMonth_logbook_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_lodge_log*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_lodge_log*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Logbook data only",
@@ -495,7 +499,7 @@ PFMAMonth_logbook_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MON
 PFMAMonth_commercial_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_commercial*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_commercial*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Commercial troll data only",
@@ -505,7 +509,7 @@ PFMAMonth_commercial_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(
 PFMAMonth_biodata_plot<-ggplot(data=Sport_mark_rate_only_recent %>% filter(AREA %notin% c("Area 20", "Area 23")), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Biodata only average mark rate by PFMA 2019-2023",
@@ -517,7 +521,7 @@ PFMAMonth_biodata_plot<-ggplot(data=Sport_mark_rate_only_recent %>% filter(AREA 
 PFMAMonth_biodata_plot2<-ggplot(data=Sport_mark_rate_only_past %>% filter(AREA %notin% c("Area 20", "Area 23")), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Biodata only average mark rate by PFMA 2014-2018",
@@ -525,73 +529,86 @@ PFMAMonth_biodata_plot2<-ggplot(data=Sport_mark_rate_only_past %>% filter(AREA %
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
 
+
+##### BIODATA DIFFERENCeS
+
 PFMAMonth_biodata_diff_recent_plot_1<-ggplot(data=Sport_mark_rate_only_recent %>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Scenario 1: Difference in current biodata mark rate\n when marking all stocks at 100%",
        x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\n mark rate"))
 
 PFMAMonth_biodata_diff_recent_plot_2<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_wcvi*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff_wcvi*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Scenario 2: Difference in current biodata mark rate\n when marking WCVI stocks at 100%",
        x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\nmark rate"))
 
-PFMAMonth_biodata_diff_recent_plot_3a<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_cap_chi_bqr*100))+
+PFMAMonth_biodata_diff_recent_plot_3a<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_pccqq*100))+
+  geom_tile(colour = "white") +
+  geom_text(aes(label=round(marked_prop_biodata_diff_pccqq*100, 0)))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
+   scale_y_discrete(limits=rev)+
+  scale_x_discrete(position = "top")+
+  labs(title = "Scenario 3a: Difference in current biodata mark rate\n when marking Puntledge, Big Qualicum, Little Qualicum,\n Capilano, and Chilliwack at 100%",
+       x = "Month", y = "PFMA") +
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\n mark rate"))
+
+PFMAMonth_biodata_diff_recent_plot_3b<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_cap_chi_bqr*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff_cap_chi_bqr*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3a: Difference in current biodata mark rate\n when marking Capilano, Chilliwack, and BQR at 100%",
+  labs(title = "Scenario 3b: Difference in current biodata mark rate\n when marking Capilano, Chilliwack, and BQR at 100%",
        x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\n mark rate"))
 
 
-PFMAMonth_biodata_diff_recent_plot_3b<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_cap_chi*100))+
+PFMAMonth_biodata_diff_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_cap_chi*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff_cap_chi*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3b: Difference in current biodata mark rate\n when marking Capilano and Chilliwack at 100%",
+  labs(title = "Scenario 3c: Difference in current biodata mark rate\n when marking Capilano and Chilliwack at 100%",
        x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\ mark rate"))
 
-PFMAMonth_biodata_diff_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_bqr*100))+
+PFMAMonth_biodata_diff_recent_plot_3d<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_bqr*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff_bqr*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3c: Difference in current biodata mark rate\n when marking Big Qualicum River at 100%",
+  labs(title = "Scenario 3d: Difference in current biodata mark rate\n when marking Big Qualicum River at 100%",
        x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\n mark rate"))
 
-PFMAMonth_biodata_diff_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_ecvi*100))+
-  geom_tile(colour = "white") +
-  geom_text(aes(label=round(marked_prop_biodata_diff_ecvi*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
-   scale_y_discrete(limits=rev)+
-  scale_x_discrete(position = "top")+
-  labs(title = "Scenario 4: Difference in current biodata mark rate\n when marking ECVI stocks at 100%",
-       x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Delta mark rate"))
+# PFMAMonth_biodata_diff_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff_ecvi*100))+
+#   geom_tile(colour = "white") +
+#   geom_text(aes(label=round(marked_prop_biodata_diff_ecvi*100, 0)))+
+#   scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
+#    scale_y_discrete(limits=rev)+
+#   scale_x_discrete(position = "top")+
+#   labs(title = "Scenario 4: Difference in current biodata mark rate\n when marking ECVI stocks at 100%",
+#        x = "Month", y = "PFMA") +
+#   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Increase in\n mark rate"))
 
 
-### potential: 
+###### BIODATA POTENTIAL
 PFMAMonth_biodata_potential_recent_plot_1<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Scenario 1: Potential biodata mark rate\n when marking all stocks at 100%",
@@ -601,54 +618,68 @@ PFMAMonth_biodata_potential_recent_plot_1<-ggplot(data=Sport_mark_rate_only_rece
 PFMAMonth_biodata_potential_recent_plot_2<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_wcvi)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_wcvi)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Scenario 2: Potential biodata mark rate\n when marking WCVI stocks at 100%",
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
-PFMAMonth_biodata_potential_recent_plot_3a<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_cap_chi_bqr)*100))+
+
+
+PFMAMonth_biodata_potential_recent_plot_3a<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_pccqq)*100))+
+  geom_tile(colour = "white") +
+  geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_pccqq)*100, 0)))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
+   scale_y_discrete(limits=rev)+
+  scale_x_discrete(position = "top")+
+  labs(title = "Scenario 3a: Potential biodata mark rate\n when marking Puntledge, Big Qualicum, Little Qualicum,\nCapilano, and Chilliwack at 100%",
+       x = "Month", y = "PFMA") +
+  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
+
+
+
+PFMAMonth_biodata_potential_recent_plot_3b<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_cap_chi_bqr)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_cap_chi_bqr)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3a: Potential biodata mark rate\n when marking Capilano, Chilliwack, and BQR at 100%",
+  labs(title = "Scenario 3b: Potential biodata mark rate\n when marking Capilano, Chilliwack, and BQR at 100%",
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
 
-PFMAMonth_biodata_potential_recent_plot_3b<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_cap_chi)*100))+
+PFMAMonth_biodata_potential_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_cap_chi)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_cap_chi)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3b: Potential biodata mark rate\n when marking Capilano and Chilliwack at 100%",
+  labs(title = "Scenario 3c: Potential biodata mark rate\n when marking Capilano and Chilliwack at 100%",
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
 
-PFMAMonth_biodata_potential_recent_plot_3c<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_bqr)*100))+
+PFMAMonth_biodata_potential_recent_plot_3d<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_bqr)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_bqr)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
-  labs(title = "Scenario 3c: Potential biodata mark rate\n when marking Big Qualicum River at 100%",
+  labs(title = "Scenario 3d: Potential biodata mark rate\n when marking Big Qualicum River at 100%",
        x = "Month", y = "PFMA") +
   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
-
-PFMAMonth_biodata_potential_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100))+
-  geom_tile(colour = "white") +
-  geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
-   scale_y_discrete(limits=rev)+
-  scale_x_discrete(position = "top")+
-  labs(title = "Scenario 4: Potential biodata mark rate\n when marking ECVI stocks at 100%",
-       x = "Month", y = "PFMA") +
-  theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
+# 
+# PFMAMonth_biodata_potential_recent_plot_4<-ggplot(data=Sport_mark_rate_only_recent%>% filter(AREA %notin% c("Area 20", "Area 23"), MONTH %notin% c(1,2,3,10,11,12)), aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100))+
+#   geom_tile(colour = "white") +
+#   geom_text(aes(label=round((marked_prop_biodata+marked_prop_biodata_diff_ecvi)*100, 0)))+
+#   scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
+#    scale_y_discrete(limits=rev)+
+#   scale_x_discrete(position = "top")+
+#   labs(title = "Scenario 4: Potential biodata mark rate\n when marking ECVI stocks at 100%",
+#        x = "Month", y = "PFMA") +
+#   theme_bw() + theme_minimal()+ guides(fill = guide_colourbar("Mark rate"))
 
 
 
@@ -658,7 +689,7 @@ PFMAMonth_biodata_potential_recent_plot_4<-ggplot(data=Sport_mark_rate_only_rece
 PFMAMonth_potential_recent_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = (marked_prop_biodata+marked_prop_biodata_diff)*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round((marked_prop_biodata+ marked_prop_biodata_diff)*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Potential biodata mark rate after 100% mass marking by PFMA 2019-2023",
@@ -670,7 +701,7 @@ PFMAMonth_potential_recent_plot<-ggplot(data=Sport_mark_rate_only_recent, aes(x=
 PFMAMonth_biodata_diff_past_plot<-ggplot(data=Sport_mark_rate_only_past, aes(x=month(MONTH, label=TRUE), y=as.factor(AREA), fill = marked_prop_biodata_diff*100))+
   geom_tile(colour = "white") +
   geom_text(aes(label=round(marked_prop_biodata_diff*100, 0)))+
-  scale_fill_paletteer_c("ggthemes::Blue-Teal", direction=1, na.value="#1C00ff00", limits=c(0,100))+
+  scale_fill_paletteer_c("grDevices::Blues 3", direction=-1, na.value="#1C00ff00", limits=c(0,100))+
    scale_y_discrete(limits=rev)+
   scale_x_discrete(position = "top")+
   labs(title = "Difference in biodata mark rate when marking at 100% by PFMA 2014-2018",
